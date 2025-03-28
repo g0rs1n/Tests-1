@@ -1,0 +1,53 @@
+
+.wrapper{
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.tabs_wrapper{
+    display: flex;
+}
+
+.tabitem{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    column-gap: 5px;
+    width: 100%;
+    max-width: 130px;
+    padding: 9px 7px;
+    border: 1px solid #989797;
+
+    & p{
+        font-size: 18px;
+        font-family: Arial, Helvetica, sans-serif;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        max-width: 100px;
+    }
+
+    &:hover{
+        box-shadow: 0px 1px 4px 1px #616161;
+    }
+}
+
+.deleteIcon{
+    z-index: 100;
+}
+
+.edit{
+    display: flex;
+    column-gap: 5px;
+
+    & .deleteItem{
+        cursor: pointer;
+    }
+
+    & .pinItem{
+        cursor: pointer;
+    }
+}
