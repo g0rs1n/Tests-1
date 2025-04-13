@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import styles from './page.module.scss'
 import { Geist, Geist_Mono } from "next/font/google";
+import Tabs from "@/components/Tabs/Tabs";
 import '../styles/global.scss'
 
 const geistSans = Geist({
@@ -25,7 +27,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        {children}
+        <div className={styles.wrapper}>
+          <div className={styles.wrapper_tabs}>
+            <Tabs/>
+          </div>
+          {children}
+        </div>
       </body>
     </html>
   );

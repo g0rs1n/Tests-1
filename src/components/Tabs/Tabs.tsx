@@ -2,6 +2,7 @@
 
 import styles from './page.module.scss'
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { 
     DndContext, 
     DragEndEvent, 
@@ -21,6 +22,7 @@ export default function Tabs () {
 
     const [pinned, setPinned] = useState<Ttabs>([])
     const [tabs, setTabs] = useState<Ttabs>(tabsInitial)
+    const router = useRouter()
 
     useEffect(() => {
         const savedTabs = localStorage.getItem("tabs")
@@ -32,7 +34,8 @@ export default function Tabs () {
             setTabs(sortedTabs)
         }
         if (!savedTabs) {
-            localStorage.setItem("tabs", JSON.stringify(tabsInitial.map(tab => tab.id)))
+            localStorage
+                .setItem("tabs", JSON.stringify(tabsInitial.map(tab => tab.id)))
         }
     },[])
 
@@ -43,18 +46,15 @@ export default function Tabs () {
                 const oldIndex = tabs.findIndex((tab) => tab.id === active.id)
                 const newIndex = tabs.findIndex((tab) => tab.id === over?.id)
                 const newTabs = arrayMove(tabs, oldIndex, newIndex)
-                localStorage.setItem("tabs", JSON.stringify(newTabs.map(tab => tab.id)))
+                localStorage
+                    .setItem("tabs", JSON.stringify(newTabs.map(tab => tab.id)))
                 return newTabs
             })
         }
     }
 
-    const handleDeleteButton = (tab: ITabsInitial) => {
-        setTabs(tabs => {
-            const newTabs = tabs.filter(item => item.id !== tab.id)
-            localStorage.setItem("tabs", JSON.stringify(newTabs.map(tab => tab.id)))
-            return newTabs
-        })
+    const redirectToTab = (url: string) => {
+        router.push(`/${url}`)
     }
 
     const sensors = useSensors(
@@ -69,9 +69,9 @@ export default function Tabs () {
         <>
             <div className={styles.wrapper}>
                 <DndContext 
-                    sensors={sensors}
-                    modifiers={[restrictToHorizontalAxis]} 
-                    onDragEnd={handleDragEnd}>
+                        sensors={sensors}
+                        modifiers={[restrictToHorizontalAxis]} 
+                        onDragEnd={handleDragEnd}>
                     <SortableContext
                         items={tabs.map((tab) => tab.id)}
                     >
@@ -80,7 +80,9 @@ export default function Tabs () {
                                 <TabItem
                                     key={tab.id}
                                     tab={tab}
-                                    handleDeleteButton={handleDeleteButton}
+                                    tabs={tabs}
+                                    setTabs={setTabs}
+                                    redirectToTab={redirectToTab}
                                 />
                             ))
                         }  

@@ -1,17 +1,5 @@
-import styles from "./page.module.scss";
-import Tabs from "@/components/Tabs/Tabs";
+import {redirect} from 'next/navigation'
 
 export default function Home() {
-  return (
-    <>
-      <div className={styles.wrapper}>
-        <div className={styles.wrapper_tabs}>
-          <Tabs/>
-        </div>
-        <div className={styles.wrapper_main}>
-          Main
-        </div>
-      </div>
-    </>
-  );
+  redirect("/tab1")
 }
