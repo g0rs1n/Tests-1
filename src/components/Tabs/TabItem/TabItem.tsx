@@ -12,13 +12,21 @@ interface ITabItemProps {
     tabs: ITabsInitial[];
     redirectToTab: (url: string) => void;
     setTabs: TSetTabs;
+    tabMouseOnClick: (e: React.MouseEvent, tab: ITabsInitial) => void;
+    isPinMenuVisible: boolean;
 }
 
 type TSetTabs = (setTabs: ((tabs: ITabsInitial[]) => ITabsInitial[])) => void;
 
 export default function TabItem (props:ITabItemProps) {
 
-    const {tab, tabs, setTabs, redirectToTab} = props
+    const {
+        tab, 
+        tabs, 
+        setTabs, 
+        isPinMenuVisible, 
+        tabMouseOnClick
+    } = props
     const [isLoading, setIsLoading] = useState(false)
     const [isActiveTab, setIsActiveTab] = useState(false)
     const router = useRouter()
@@ -75,7 +83,8 @@ export default function TabItem (props:ITabItemProps) {
                 className={`${styles.wrapperItemTab} ${isActiveTab ? styles.activeTab : ''}`}
                 {...attributes}
                 {...listeners}
-                onClick={() => redirectToTab(tab.url)}
+                onMouseDown={(e) => tabMouseOnClick(e,tab)}
+                onContextMenu={(e) => e.preventDefault()}
             >
                 <p className={styles.TabItemTitle}>
                         {tab.title}
@@ -91,6 +100,24 @@ export default function TabItem (props:ITabItemProps) {
                         handleDeleteButton(tab)
                     }}
                 />
+                {
+                    isPinMenuVisible && (
+                        <div 
+                            className={styles.PinnedMenu}
+                        >
+                            <Image
+                                className={styles.PinnedMenuIcon}
+                                src={'/pin.png'}
+                                width={19}
+                                height={19}
+                                alt="pinned"
+                            />
+                            <p className={styles.PinnedMenuTitle}>
+                                Pin {tab.title}
+                            </p>
+                        </div>
+                    )
+                }
             </div>
         </>
     )

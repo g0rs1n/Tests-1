@@ -33,6 +33,7 @@
         max-width: 85px;
         font-size: 18px;
         font-weight: 500;
+        text-align: center;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -54,6 +55,26 @@
         }
     }
 
+    & .PinnedMenu{
+        z-index: 1000;
+        padding: 5px;
+        cursor: pointer;
+        display: flex;
+        column-gap: 10px;
+        align-items: center;
+        position: absolute;
+        bottom: -43px;
+        right: -120px;
+        background-color: #c7c6c6;
+        padding: 6px;
+        border-radius: 5px;
+        width: 150px;
+        height: 40px;
+        opacity: 0;
+        pointer-events: none;
+        animation: fadeInPinned 0.3s ease forwards;
+    }
+
     &:hover .TabItemDeleteIcon {
         opacity: 1;
         visibility: visible;
@@ -66,5 +87,12 @@
     & .TabItemDeleteIcon{
         opacity: 1;
         visibility: visible;
+    }
+}
+
+@keyframes fadeInPinned {
+    to {
+        opacity: 1;
+        pointer-events: auto;
     }
 }
