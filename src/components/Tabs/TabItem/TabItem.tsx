@@ -1,7 +1,7 @@
 
 import { useRouter, usePathname } from "next/navigation"
 import { useEffect, useState } from "react"
-import { ITabsInitial} from "@/utils/types"
+import { ITabsInitial, TStorageTabs} from "@/utils/types"
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 import Image from "next/image"
@@ -58,15 +58,18 @@ export default function TabItem (props:ITabItemProps) {
     const handleDeleteButton = (tab: ITabsInitial) => {
         const tabsIds = localStorage.getItem("tabs")
         if (tabsIds) {
-            const parsedTabsIds: string[] = JSON.parse(tabsIds)
-            const currentTabIndex = parsedTabsIds.findIndex(id => id === tab.id)
-            const prevTabId = parsedTabsIds[currentTabIndex - 1] 
-                || parsedTabsIds[currentTabIndex + 1]
-            const newTab = tabs.find(tab => tab.id === prevTabId)?.url
+            const parsedTabsIds: TStorageTabs[] = JSON.parse(tabsIds)
+            const currentTabIndex = parsedTabsIds.findIndex(t => t.id === tab.id)
+            const prevTabId = parsedTabsIds[currentTabIndex - 1]?.id 
+                || parsedTabsIds[currentTabIndex + 1]?.id
+            const newTab = tabs.find(t => t.id === prevTabId)?.url
             setTabs(tabs => {
                 const newTabs = tabs.filter(item => item.id !== tab.id)
                 localStorage
-                    .setItem("tabs", JSON.stringify(newTabs.map(tab => tab.id)))
+                    .setItem("tabs", JSON.stringify(newTabs.map(tab => ({
+                        id: tab.id,
+                        url: tab.url,
+                    }))))
                 return newTabs
             })
             newTab ? router.push(`/${newTab}`) : router.push("/")

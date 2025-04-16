@@ -43,8 +43,6 @@ export default function Tabs () {
                 .setItem("tabs", JSON.stringify(tabsInitial.map(tab => ({
                     id: tab.id,
                     url: tab.url,
-                    pinned: false,
-                    lastActive: false,
                 }))))
         }
     },[])
@@ -56,26 +54,7 @@ export default function Tabs () {
                 const oldIndex = tabs.findIndex((tab) => tab.id === active.id)
                 const newIndex = tabs.findIndex((tab) => tab.id === over?.id)
                 const newTabs = arrayMove(tabs, oldIndex, newIndex)
-
-                const storageTabs = localStorage.getItem("tabs")
-                let savedStateMap: Record<string, {pinned: boolean; lastActive: boolean}> = {}
-                if (storageTabs) {
-                    const parsedTabs: TStorageTabs[] = JSON.parse(storageTabs)
-                    savedStateMap = parsedTabs.reduce((acc, tab) => {
-                        acc[tab.id] = {
-                            pinned: tab.pinned,
-                            lastActive: tab.lastActive,
-                        }
-                        return acc
-                    }, {} as Record<string, {pinned: boolean; lastActive: boolean}>)
-                }
-                const updatedStorage = newTabs.map((tab) => ({
-                    id: tab.id,
-                    url: tab.url,
-                    pinned: savedStateMap[tab.id]?.pinned ?? false,
-                    lastActive: savedStateMap[tab.id]?.lastActive ?? false,
-                }))
-                localStorage.setItem("tabs", JSON.stringify(updatedStorage))
+                localStorage.setItem("tabs", JSON.stringify(newTabs))
                 return newTabs
             })
         }
@@ -97,18 +76,7 @@ export default function Tabs () {
             if (pathname === `/${url}`){
                 router.refresh()
             } else {
-                const storageTabs = localStorage.getItem("tabs")
-                if (storageTabs) {
-                    const parsedTabs:TStorageTabs[] = JSON.parse(storageTabs)
-                    const updatedTabs = parsedTabs
-                        .map((tab) => ({
-                            ...tab,
-                            url: tabs.find(item => item.id === tab.id)?.url || '',
-                            lastActive: tab.id === currentTab.id
-                        }))
-                    localStorage.setItem("tabs", JSON.stringify(updatedTabs))
-                }
-                router.push(`/${url}`)
+                router.push(`/${currentTab.url}`)
             }
         }
     }

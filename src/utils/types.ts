@@ -9,6 +9,4 @@ export interface ITabsInitial {
 export type TStorageTabs = {
     id: string;
     url: string;
-    pinned: boolean;
-    lastActive: boolean;
 }

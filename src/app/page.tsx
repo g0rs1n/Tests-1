@@ -12,23 +12,11 @@ export default function Home() {
     const storageTabs = localStorage.getItem("tabs")
 
     if (storageTabs) {
-      const parsedTabs:TStorageTabs[] = JSON.parse(storageTabs)
-      const lastActiveTab = parsedTabs.find(tab => tab.lastActive)
-
-      if (lastActiveTab) {
-        router.push(`/${lastActiveTab.url}`)
-      } else {
-
-        const firstTab = parsedTabs[0]
-        if (firstTab) {
-          firstTab.lastActive = true
-          localStorage.setItem("tabs", JSON.stringify(parsedTabs))
-          router.push(`/${firstTab.url}`)
-        }
-
-      }
+      const parsedTabs: TStorageTabs[] = JSON.parse(storageTabs)
+      const initialTabUrl = parsedTabs?.[0]?.url
+      initialTabUrl ? router.push(`/${initialTabUrl}`) : router.push('/')
     }
-  },[router])
+  },[])
 
   return null
 
