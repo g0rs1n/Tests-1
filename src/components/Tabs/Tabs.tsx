@@ -1,7 +1,7 @@
 "use client"
 
 import styles from './page.module.scss'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { 
     DndContext, 
@@ -12,17 +12,17 @@ import {
 } from '@dnd-kit/core'
 import { arrayMove, SortableContext } from '@dnd-kit/sortable'
 import { tabsInitial } from '@/db/db'
-import { ITabsInitial, TStorageTabs } from '@/utils/types'
+import { ITabsInitial, TStorageTabs, IPinnedTabsInitial } from '@/utils/types'
 import TabItem from './TabItem/TabItem'
 import { restrictToHorizontalAxis } from '@dnd-kit/modifiers'
 
-type Ttabs = ITabsInitial[]
+type Ttabs = IPinnedTabsInitial[]
 
 export default function Tabs () {
 
-    const [pinned, setPinned] = useState<Ttabs>([])
-    const [tabs, setTabs] = useState<Ttabs>(tabsInitial)
+    const [tabs, setTabs] = useState<Ttabs>([])
     const [activeMenuTabId, setActiveMenuTabId] = useState<string | null>(null)
+    const pinMenuRef = useRef<Record<string, HTMLDivElement | null>>({})
     const router = useRouter()
     const pathname = usePathname()
 
@@ -30,22 +30,35 @@ export default function Tabs () {
         const storageTabs = localStorage.getItem("tabs")
         if (storageTabs) {
             const savedTabs:TStorageTabs[] = JSON.parse(storageTabs)
-            const sortedTabs = savedTabs.map((tab) => {
-                const baseTab = tabsInitial.find(item => item.id === tab.id)
-                if (!baseTab) return null
-                return {...baseTab}
+            const combinedTabs = savedTabs.map(({id, isPinned}) => {
+                const base = tabsInitial.find(t => t.id === id)
+                return base ? {...base,isPinned} : null
             })
-            .filter(Boolean) as Ttabs
-            setTabs(sortedTabs)
+            .filter((tab): tab is IPinnedTabsInitial => tab !== null)
+            const pinnedTabs = combinedTabs.filter(t => t?.isPinned)
+            const unpinnedTabs = combinedTabs.filter(t => !t?.isPinned)
+            setTabs([...pinnedTabs, ...unpinnedTabs])
         }
-        if (!storageTabs) {   
+        if (!storageTabs) {
+            const initialTabs = tabsInitial.map(tab => ({...tab, isPinned: false}))  
             localStorage
-                .setItem("tabs", JSON.stringify(tabsInitial.map(tab => ({
-                    id: tab.id,
-                    url: tab.url,
-                }))))
+                .setItem("tabs", JSON.stringify(initialTabs))
+            setTabs(initialTabs)
         }
     },[])
+
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (activeMenuTabId && pinMenuRef.current[activeMenuTabId]){
+                const pinRef = pinMenuRef.current[activeMenuTabId]
+                if (pinRef && !pinRef.contains(e.target as Node)){
+                    setActiveMenuTabId(null)
+                }
+            }
+        }
+        document.addEventListener("click", handleClickOutside)
+        return () => document.removeEventListener("click", handleClickOutside)
+    },[activeMenuTabId])
 
     const handleDragEnd = (event: DragEndEvent) => {
         const {active, over} = event
@@ -100,7 +113,7 @@ export default function Tabs () {
                         items={tabs.map((tab) => tab.id)}
                     >
                         {
-                            tabs.map((tab) => (
+                            tabs?.map((tab) => (
                                 <TabItem
                                     key={tab.id}
                                     tab={tab}
@@ -109,6 +122,7 @@ export default function Tabs () {
                                     redirectToTab={redirectToTab}
                                     tabMouseOnClick={tabMouseOnClick}
                                     isPinMenuVisible={activeMenuTabId === tab.id}
+                                    setPinMenuRef={(ref) => {pinMenuRef.current[tab.id] = ref}}
                                 />
                             ))
                         }  

@@ -1,22 +1,23 @@
 
 import { useRouter, usePathname } from "next/navigation"
 import { useEffect, useState } from "react"
-import { ITabsInitial, TStorageTabs} from "@/utils/types"
+import { ITabsInitial, TStorageTabs, IPinnedTabsInitial} from "@/utils/types"
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 import Image from "next/image"
 import styles from '../page.module.scss'
 
 interface ITabItemProps {
-    tab: ITabsInitial;
-    tabs: ITabsInitial[];
+    tab: IPinnedTabsInitial;
+    tabs: IPinnedTabsInitial[];
     redirectToTab: (url: string) => void;
     setTabs: TSetTabs;
     tabMouseOnClick: (e: React.MouseEvent, tab: ITabsInitial) => void;
     isPinMenuVisible: boolean;
+    setPinMenuRef: (ref: HTMLDivElement | null) => void;
 }
 
-type TSetTabs = (setTabs: ((tabs: ITabsInitial[]) => ITabsInitial[])) => void;
+type TSetTabs = (setTabs: ((tabs: IPinnedTabsInitial[]) => IPinnedTabsInitial[])) => void;
 
 export default function TabItem (props:ITabItemProps) {
 
@@ -25,7 +26,8 @@ export default function TabItem (props:ITabItemProps) {
         tabs, 
         setTabs, 
         isPinMenuVisible, 
-        tabMouseOnClick
+        tabMouseOnClick,
+        setPinMenuRef
     } = props
     const [isLoading, setIsLoading] = useState(false)
     const [isActiveTab, setIsActiveTab] = useState(false)
@@ -69,11 +71,34 @@ export default function TabItem (props:ITabItemProps) {
                     .setItem("tabs", JSON.stringify(newTabs.map(tab => ({
                         id: tab.id,
                         url: tab.url,
+                        isPinned: tab.isPinned,
                     }))))
                 return newTabs
             })
             newTab ? router.push(`/${newTab}`) : router.push("/")
         }
+    }
+
+    const handleOnClickPinTab = (tabId: string) => {
+        setTabs((prevTabs) => {
+            const updatedTabs = prevTabs.map(tab => 
+                tab.id === tabId ? {...tab, isPinned: !tab.isPinned} : tab
+            )
+            const pinnedTabs = updatedTabs.filter(t => t.isPinned)
+            const unpinnedTabs = updatedTabs.filter(t => !t.isPinned)
+            const newTabs = [...pinnedTabs, ...unpinnedTabs]
+            localStorage.setItem(
+                "tabs",
+                JSON.stringify(
+                    newTabs.map((tab) => ({
+                        id: tab.id,
+                        url: tab.url,
+                        isPinned: tab.isPinned
+                    }))
+                )
+            )
+            return newTabs
+        })
     }
 
     if (!isLoading) return null
@@ -84,8 +109,7 @@ export default function TabItem (props:ITabItemProps) {
                 ref={setNodeRef}
                 style={style}
                 className={`${styles.wrapperItemTab} ${isActiveTab ? styles.activeTab : ''}`}
-                {...attributes}
-                {...listeners}
+                {...(!tab.isPinned ? {...attributes, ...listeners} : {})}
                 onMouseDown={(e) => tabMouseOnClick(e,tab)}
                 onContextMenu={(e) => e.preventDefault()}
             >
@@ -105,8 +129,13 @@ export default function TabItem (props:ITabItemProps) {
                 />
                 {
                     isPinMenuVisible && (
-                        <div 
+                        <div
+                            ref={(ref) => setPinMenuRef(ref)}
                             className={styles.PinnedMenu}
+                            onMouseDown={(e) => {
+                                e.stopPropagation()
+                                handleOnClickPinTab(tab.id)
+                            }}
                         >
                             <Image
                                 className={styles.PinnedMenuIcon}
@@ -116,7 +145,9 @@ export default function TabItem (props:ITabItemProps) {
                                 alt="pinned"
                             />
                             <p className={styles.PinnedMenuTitle}>
-                                Pin {tab.title}
+                                {
+                                    tab.isPinned ? `Unpin ${tab.title}` : `Pin ${tab.title}`
+                                }
                             </p>
                         </div>
                     )
